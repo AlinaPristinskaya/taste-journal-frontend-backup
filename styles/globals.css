@@ -237,3 +237,16 @@ a {
   flex-direction: column;
   gap: 0.8rem;
 }
+
+.card-link {
+  color: inherit;
+  display: block;
+}
+
+.card-link:hover h3 {
+  text-decoration: underline;
+}
+
+.card .card-actions {
+  padding: 0 0.85rem 0.85rem;
+}

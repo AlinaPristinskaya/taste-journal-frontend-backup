@@ -106,6 +106,7 @@ export default function HomePage() {
             <RecipeCard
               key={recipe.external_id}
               recipe={{ ...recipe, source_type: 'external' }}
+              href={`/recipe/external-${recipe.external_id}`}
               actions={
                 isAuthenticated ? (
                   <button

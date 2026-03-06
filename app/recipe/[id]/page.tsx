@@ -4,7 +4,47 @@ type RecipePageProps = {
   params: Promise<{ id: string }>;
 };
 
-async function loadRecipe(id: string) {
+type RecipeView = {
+  title: string;
+  category: string | null;
+  image_url: string | null;
+  content: string;
+};
+
+async function loadExternalRecipe(externalId: string): Promise<RecipeView | null> {
+  try {
+    const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${externalId}`, {
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      return null;
+    }
+
+    const data = await res.json();
+    const meal = data?.meals?.[0];
+
+    if (!meal) {
+      return null;
+    }
+
+    return {
+      title: meal.strMeal,
+      category: meal.strCategory || null,
+      image_url: meal.strMealThumb || null,
+      content: meal.strInstructions || 'No instructions available.',
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function loadRecipe(id: string): Promise<RecipeView | null> {
+  if (id.startsWith('external-')) {
+    const externalId = id.replace('external-', '');
+    return loadExternalRecipe(externalId);
+  }
+
   try {
     return await getRecipeById(id);
   } catch {

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { ReactNode } from 'react';
 
 type CardRecipe = {
@@ -5,18 +6,18 @@ type CardRecipe = {
   content?: string;
   category?: string | null;
   image_url?: string | null;
-  source_url?: string | null;
   source_type?: string;
 };
 
 type Props = {
   recipe: CardRecipe;
+  href?: string;
   actions?: ReactNode;
 };
 
-export default function RecipeCard({ recipe, actions }: Props) {
-  return (
-    <article className="card">
+export default function RecipeCard({ recipe, href, actions }: Props) {
+  const cardContent = (
+    <>
       {recipe.image_url ? (
         <img src={recipe.image_url} alt={recipe.title} className="card-image" />
       ) : (
@@ -32,16 +33,15 @@ export default function RecipeCard({ recipe, actions }: Props) {
         </p>
 
         {recipe.content ? <p className="content-preview">{recipe.content}</p> : null}
-
-        <div className="card-actions">
-          {recipe.source_url ? (
-            <a href={recipe.source_url} target="_blank" rel="noreferrer" className="button button-link">
-              Open Source
-            </a>
-          ) : null}
-          {actions}
-        </div>
       </div>
+    </>
+  );
+
+  return (
+    <article className="card">
+      {href ? <Link href={href} className="card-link">{cardContent}</Link> : cardContent}
+
+      {actions ? <div className="card-actions">{actions}</div> : null}
     </article>
   );
 }
