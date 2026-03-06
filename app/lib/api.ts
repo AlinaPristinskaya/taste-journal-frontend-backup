@@ -102,6 +102,38 @@ export async function createRecipe(
   });
 }
 
+export async function uploadImage(token: string, file: File): Promise<{ image_url: string }> {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  let res: Response;
+
+  try {
+    res = await fetch(`${API_URL}/upload-image`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+  } catch {
+    throw new Error(`Cannot connect to backend at ${API_URL}. Start server on port 3001.`);
+  }
+
+  if (!res.ok) {
+    let message = 'Failed to upload image';
+    try {
+      const data = await res.json();
+      message = data.message || message;
+    } catch {
+      // Ignore invalid JSON errors from server
+    }
+    throw new Error(message);
+  }
+
+  return res.json();
+}
+
 export async function updateRecipe(
   token: string,
   id: number,

@@ -1,9 +1,9 @@
 'use client';
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import RecipeCard from '../components/RecipeCard';
 import { useUser } from '../context/UserContext';
-import { createRecipe, deleteRecipe, getMyRecipes, updateRecipe } from '../lib/api';
+import { createRecipe, deleteRecipe, getMyRecipes, updateRecipe, uploadImage } from '../lib/api';
 import { Recipe, SourceType } from '../types';
 
 type RecipeForm = {
@@ -36,6 +36,8 @@ export default function MyRecipesPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<RecipeForm>(initialForm);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState('No file selected');
 
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState<SourceType | 'all'>('all');
@@ -77,6 +79,7 @@ export default function MyRecipesPage() {
   function resetForm() {
     setForm(initialForm);
     setEditingId(null);
+    setSelectedFileName('No file selected');
   }
 
   function startEdit(recipe: Recipe) {
@@ -125,6 +128,30 @@ export default function MyRecipesPage() {
       setError(requestError instanceof Error ? requestError.message : 'Failed to save recipe');
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleImageSelection(event: ChangeEvent<HTMLInputElement>) {
+    if (!token) {
+      return;
+    }
+
+    const file = event.target.files?.[0];
+    if (!file) {
+      setSelectedFileName('No file selected');
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      setSelectedFileName(file.name);
+      const uploaded = await uploadImage(token, file);
+      setForm((prev) => ({ ...prev, image_url: uploaded.image_url }));
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+      event.target.value = '';
     }
   }
 
@@ -193,24 +220,46 @@ export default function MyRecipesPage() {
 
           <input
             className="input"
-            placeholder="External ID (optional)"
-            value={form.external_id}
-            onChange={(event) => setForm((prev) => ({ ...prev, external_id: event.target.value }))}
-          />
-
-          <input
-            className="input"
-            placeholder="Image URL (optional)"
+            placeholder="Image URL (auto-filled after upload)"
             value={form.image_url}
             onChange={(event) => setForm((prev) => ({ ...prev, image_url: event.target.value }))}
           />
 
+          <div className="row">
+            <label className="button button-secondary file-picker-label" htmlFor="recipe-image-file">
+              Choose File
+            </label>
+            <span className="muted">{selectedFileName}</span>
+          </div>
+
           <input
-            className="input"
-            placeholder="Source URL (optional)"
-            value={form.source_url}
-            onChange={(event) => setForm((prev) => ({ ...prev, source_url: event.target.value }))}
+            id="recipe-image-file"
+            className="file-picker-hidden"
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelection}
+            disabled={uploadingImage}
           />
+
+          {uploadingImage ? <p className="muted">Uploading image...</p> : null}
+
+          {form.source_type === 'external' ? (
+            <input
+              className="input"
+              placeholder="External ID (optional)"
+              value={form.external_id}
+              onChange={(event) => setForm((prev) => ({ ...prev, external_id: event.target.value }))}
+            />
+          ) : null}
+
+          {form.source_type === 'external' ? (
+            <input
+              className="input"
+              placeholder="Source URL (optional)"
+              value={form.source_url}
+              onChange={(event) => setForm((prev) => ({ ...prev, source_url: event.target.value }))}
+            />
+          ) : null}
 
           <div className="row">
             <button className="button" type="submit" disabled={submitting}>
