@@ -1,23 +1,17 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import RecipeCard from './components/RecipeCard';
 import { useUser } from './context/UserContext';
-import { createRecipe, fetchExternalRecipes, login, register } from './lib/api';
+import { createRecipe, fetchExternalRecipes } from './lib/api';
 import { ExternalRecipe } from './types';
 
 export default function HomePage() {
-  const { isAuthenticated, setSession, token } = useUser();
+  const { isAuthenticated, token } = useUser();
 
   const [recipes, setRecipes] = useState<ExternalRecipe[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [authError, setAuthError] = useState<string | null>(null);
 
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -56,29 +50,9 @@ export default function HomePage() {
     loadExternalRecipes();
   }, []);
 
-  async function handleAuthSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    try {
-      setAuthError(null);
-
-      const result =
-        mode === 'login'
-          ? await login(email, password)
-          : await register(name.trim(), email.trim(), password);
-
-      setSession(result.user, result.token);
-      setName('');
-      setEmail('');
-      setPassword('');
-    } catch (requestError) {
-      setAuthError(requestError instanceof Error ? requestError.message : 'Authentication failed');
-    }
-  }
-
   async function saveExternalRecipe(recipe: ExternalRecipe) {
     if (!token) {
-      setAuthError('Please login first');
+      alert('Please login using the button in the header');
       return;
     }
 
@@ -147,55 +121,6 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-
-      {!isAuthenticated ? (
-        <section className="panel auth-panel">
-          <h2>{mode === 'login' ? 'Login' : 'Register'}</h2>
-
-          <form onSubmit={handleAuthSubmit} className="stack">
-            {mode === 'register' ? (
-              <input
-                className="input"
-                placeholder="Name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                required
-              />
-            ) : null}
-
-            <input
-              className="input"
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-
-            <input
-              className="input"
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-
-            <button className="button" type="submit">
-              {mode === 'login' ? 'Login' : 'Create account'}
-            </button>
-          </form>
-
-          {authError ? <p className="error">{authError}</p> : null}
-
-          <button
-            className="button button-secondary"
-            onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-          >
-            {mode === 'login' ? 'Need an account? Register' : 'Already have an account? Login'}
-          </button>
-        </section>
-      ) : null}
     </div>
   );
 }

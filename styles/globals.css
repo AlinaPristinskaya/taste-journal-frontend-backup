@@ -214,3 +214,26 @@ a {
     justify-content: space-between;
   }
 }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+}
+
+.modal-card {
+  width: min(460px, 100%);
+  border-radius: 14px;
+  border: 1px solid #e7edf4;
+  background: #ffffff;
+  padding: 1rem;
+  box-shadow: 0 24px 50px rgba(15, 23, 42, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
