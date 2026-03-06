@@ -1,24 +1,26 @@
-import '../styles/globals.css'
-import { UserProvider } from './context/UserContext'
-import type { Metadata } from 'next'
+import '../styles/globals.css';
+import type { Metadata } from 'next';
+import Header from './components/Header';
+import { UserProvider } from './context/UserContext';
 
 export const metadata: Metadata = {
   title: 'Taste Journal',
-  description: 'Save and create your favorite recipes',
-}
+  description: 'Save external recipes and manage your own collection',
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
       <body>
         <UserProvider>
-          {children}
+          <Header />
+          <main className="page">{children}</main>
         </UserProvider>
       </body>
     </html>
-  )
+  );
 }

@@ -1,19 +1,36 @@
-import Image from 'next/image';
+import { getRecipeById } from '../../lib/api';
 
-async function getRecipe(id: string) {
-  const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`);
-  const data = await res.json();
-  return data.meals[0];
+type RecipePageProps = {
+  params: Promise<{ id: string }>;
+};
+
+async function loadRecipe(id: string) {
+  try {
+    return await getRecipeById(id);
+  } catch {
+    return null;
+  }
 }
 
-export default async function RecipePage({ params }: { params: { id: string } }) {
-  const recipe = await getRecipe(params.id);
+export default async function RecipePage({ params }: RecipePageProps) {
+  const { id } = await params;
+  const recipe = await loadRecipe(id);
+
+  if (!recipe) {
+    return (
+      <section className="panel">
+        <h1>Recipe Not Found</h1>
+        <p>Unable to load recipe details.</p>
+      </section>
+    );
+  }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">{recipe.strMeal}</h1>
-      <Image src={recipe.strMealThumb} alt={recipe.strMeal} width={600} height={400} />
-      <p className="mt-4">{recipe.strInstructions}</p>
-    </div>
+    <section className="panel">
+      <h1>{recipe.title}</h1>
+      <p className="muted">{recipe.category || 'Uncategorized'}</p>
+      {recipe.image_url ? <img src={recipe.image_url} alt={recipe.title} className="detail-image" /> : null}
+      <p className="detail-content">{recipe.content}</p>
+    </section>
   );
 }

@@ -1,34 +1,80 @@
-'use client'
+'use client';
 
-import { createContext, useContext, useState } from 'react'
-import { Recipe } from '../types'
+import { createContext, useContext, useMemo, useState } from 'react';
+import { AuthUser } from '../types';
 
 type UserContextType = {
-  recipes: Recipe[]
-  addRecipe: (recipe: Recipe) => void
-}
+  user: AuthUser | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  setSession: (nextUser: AuthUser, nextToken: string) => void;
+  clearSession: () => void;
+};
 
-const UserContext = createContext<UserContextType | null>(null)
+const UserContext = createContext<UserContextType | null>(null);
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [recipes, setRecipes] = useState<Recipe[]>([])
+const TOKEN_KEY = 'taste_journal_token';
+const USER_KEY = 'taste_journal_user';
 
-  const addRecipe = (recipe: Recipe) => {
-    setRecipes(prev => {
-      if (prev.find(r => r.id === recipe.id)) return prev
-      return [...prev, recipe]
-    })
+function readStoredSession() {
+  if (typeof window === 'undefined') {
+    return { user: null as AuthUser | null, token: null as string | null };
   }
 
-  return (
-    <UserContext.Provider value={{ recipes, addRecipe }}>
-      {children}
-    </UserContext.Provider>
-  )
+  const storedToken = localStorage.getItem(TOKEN_KEY);
+  const storedUser = localStorage.getItem(USER_KEY);
+
+  if (!storedToken || !storedUser) {
+    return { user: null, token: null };
+  }
+
+  try {
+    return {
+      token: storedToken,
+      user: JSON.parse(storedUser) as AuthUser,
+    };
+  } catch {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    return { user: null, token: null };
+  }
+}
+
+export function UserProvider({ children }: { children: React.ReactNode }) {
+  const [session, setSessionState] = useState(readStoredSession);
+
+  const setSession = (nextUser: AuthUser, nextToken: string) => {
+    setSessionState({ user: nextUser, token: nextToken });
+    localStorage.setItem(TOKEN_KEY, nextToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
+  };
+
+  const clearSession = () => {
+    setSessionState({ user: null, token: null });
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+  };
+
+  const value = useMemo(
+    () => ({
+      user: session.user,
+      token: session.token,
+      isAuthenticated: Boolean(session.user && session.token),
+      setSession,
+      clearSession,
+    }),
+    [session]
+  );
+
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
 export function useUser() {
-  const ctx = useContext(UserContext)
-  if (!ctx) throw new Error('useUser must be used inside UserProvider')
-  return ctx
+  const context = useContext(UserContext);
+
+  if (!context) {
+    throw new Error('useUser must be used inside UserProvider');
+  }
+
+  return context;
 }

@@ -1,38 +1,47 @@
-import Image from 'next/image'
-import { Recipe } from '@/app/types'
+import { ReactNode } from 'react';
+
+type CardRecipe = {
+  title: string;
+  content?: string;
+  category?: string | null;
+  image_url?: string | null;
+  source_url?: string | null;
+  source_type?: string;
+};
 
 type Props = {
-  recipe: Recipe
-}
+  recipe: CardRecipe;
+  actions?: ReactNode;
+};
 
-export default function RecipeCard({ recipe }: Props) {
+export default function RecipeCard({ recipe, actions }: Props) {
   return (
-    <div className="rounded-lg border p-4 shadow-sm">
-      <Image
-        src={recipe.image}
-        alt={recipe.title}
-        width={300}
-        height={200}
-        className="rounded-md"
-      />
-
-      <h3 className="mt-2 text-lg font-semibold">
-        {recipe.title}
-      </h3>
-
-      <p className="text-sm text-gray-500">
-        {recipe.category}
-      </p>
-
-      {recipe.source && (
-        <a
-          href={recipe.source}
-          target="_blank"
-          className="text-sm text-blue-600 underline"
-        >
-          Source
-        </a>
+    <article className="card">
+      {recipe.image_url ? (
+        <img src={recipe.image_url} alt={recipe.title} className="card-image" />
+      ) : (
+        <div className="card-image card-image-placeholder">No image</div>
       )}
-    </div>
-  )
+
+      <div className="card-body">
+        <h3>{recipe.title}</h3>
+
+        <p className="muted">
+          {recipe.category || 'Uncategorized'}
+          {recipe.source_type ? ` - ${recipe.source_type}` : ''}
+        </p>
+
+        {recipe.content ? <p className="content-preview">{recipe.content}</p> : null}
+
+        <div className="card-actions">
+          {recipe.source_url ? (
+            <a href={recipe.source_url} target="_blank" rel="noreferrer" className="button button-link">
+              Open Source
+            </a>
+          ) : null}
+          {actions}
+        </div>
+      </div>
+    </article>
+  );
 }

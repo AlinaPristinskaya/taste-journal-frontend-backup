@@ -1,35 +1,36 @@
-"use client";
+'use client';
 
-import React from "react";
+import Link from 'next/link';
+import { useUser } from '../context/UserContext';
 
-interface HeaderProps {
-  user: string | null;
-  onAddRecipe: () => void;
-}
+export default function Header() {
+  const { user, isAuthenticated, clearSession } = useUser();
 
-const Header: React.FC<HeaderProps> = ({ user, onAddRecipe }) => {
   return (
-    <header className="flex justify-between items-center p-4 bg-yellow-100 shadow-md">
-      <h1 className="text-2xl font-bold">My Recipes</h1>
-      <div className="flex items-center gap-4">
-        {user ? (
-          <>
-            <span className="font-medium">Hello, {user}</span>
-            <button
-              onClick={onAddRecipe}
-              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-            >
-              Add Recipe
-            </button>
-          </>
-        ) : (
-          <button className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
-            Login
-          </button>
-        )}
+    <header className="header">
+      <div className="header-inner">
+        <Link href="/" className="brand">
+          Taste Journal
+        </Link>
+
+        <nav className="nav">
+          <Link href="/">External Recipes</Link>
+          <Link href="/my-recipes">My Recipes</Link>
+        </nav>
+
+        <div className="session-box">
+          {isAuthenticated ? (
+            <>
+              <span className="welcome">Hi, {user?.name}</span>
+              <button className="button button-secondary" onClick={clearSession}>
+                Logout
+              </button>
+            </>
+          ) : (
+            <span className="welcome">Login to save recipes</span>
+          )}
+        </div>
       </div>
     </header>
   );
-};
-
-export default Header;
+}
