@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useUser } from '../context/UserContext';
 import { login, register } from '../lib/api';
 
 export default function Header() {
   const { user, isAuthenticated, clearSession, setSession } = useUser();
 
+  const [isMounted, setIsMounted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
@@ -15,6 +16,10 @@ export default function Header() {
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   async function handleAuthSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -69,7 +74,11 @@ export default function Header() {
           </nav>
 
           <div className="session-box">
-            {isAuthenticated ? (
+            {!isMounted ? (
+              <button className="button" disabled>
+                Login
+              </button>
+            ) : isAuthenticated ? (
               <>
                 <span className="welcome">Hi, {user?.name}</span>
                 <button className="button button-secondary" onClick={clearSession}>
