@@ -314,7 +314,7 @@ export default function MyRecipesPage() {
             <RecipeCard
               key={recipe.id}
               recipe={recipe}
-              href={`/recipe/${recipe.id}`}
+              href={`/recipe?id=${recipe.id}`}
               actions={
                 <>
                   <button className="button button-secondary" onClick={() => startEdit(recipe)}>
